@@ -155,3 +155,33 @@ if [[ "${USE_DATASETS:-0}" -eq 1 && -d "${OUTDIR:-.}" ]]; then
 fi
 printf '%s\n' "Sugerencia: revisa cabeceras; puedes depurar con seqkit/awk."
 printf '%s\n' "------------------------------------------------------------"
+
+# ------------------------------------------------------------
+# Metadatos automáticos para FASTA descargado
+# ------------------------------------------------------------
+if [[ "$DB" == "nuccore" ]]; then
+  BASE="${OUT%.*}"
+
+  ACCESSIONS="${BASE}_accessions.txt"
+  METADATA="${BASE}_metadata.tsv"
+
+  printf '\n%s\n' "Generando lista de accesiones..."
+  grep "^>" "$OUT" \
+  | sed 's/^>//' \
+  | awk '{print $1}' \
+  > "$ACCESSIONS"
+
+  printf '%s\n' "Generando tabla de metadatos NCBI..."
+  {
+    printf 'AccessionVersion\tTaxId\tOrganism\tTitle\tSlen\n'
+    cat "$ACCESSIONS" \
+    | epost -db nuccore \
+    | esummary \
+    | xtract -pattern DocumentSummary \
+      -element AccessionVersion TaxId Organism Title Slen
+  } > "$METADATA"
+
+  printf '%s\n' "Metadatos creados:"
+  printf '  Accesiones: %s\n' "$ACCESSIONS"
+  printf '  Metadata  : %s\n' "$METADATA"
+fi
