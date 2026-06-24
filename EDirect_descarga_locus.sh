@@ -30,6 +30,8 @@ MODE="${MODE:-1}"
 # 2) Entradas
 read -rp "Taxón (p.ej., Trichoderma): " TAXON
 read -rp "Gen o región (p.ej., ITS o rpoB): " MARKER
+read -rp "Longitud mínima (bp) [ENTER = sin límite]: " MINLEN
+read -rp "Longitud máxima (bp) [ENTER = sin límite]: " MAXLEN
 
 # 3) Base
 printf '%s\n' "Base a descargar:"
@@ -59,6 +61,7 @@ OUT="${OUT:-$DEFAULT_OUT}"
 build_query() {
   local tax="$1" marker="$2" db="$3" refseq="$4" exc="$5" incl="$6" excl="$7"
   local q_base="" q_ref="" q_exc="" q_incl="" q_excl=""
+  local q_len=""
 
   # Normalizar minúsculas (requiere bash >=4)
   local marker_lc="${marker,,}"
@@ -91,8 +94,15 @@ build_query() {
     q_excl_words="$(printf '%s' "$excl" | sed 's/[[:space:]]\+/ OR /g')"
     q_excl=" NOT (${q_excl_words})"
   fi
-
+  if [[ -n "$MINLEN" && -n "$MAXLEN" ]]; then
+    q_len=" AND ${MINLEN}:${MAXLEN}[SLEN]"
+  elif [[ -n "$MINLEN" ]]; then
+    q_len=" AND ${MINLEN}:999999999[SLEN]"
+  elif [[ -n "$MAXLEN" ]]; then
+    q_len=" AND 1:${MAXLEN}[SLEN]"
+  fi
   printf '%s' "${q_base}${q_ref}${q_exc}${q_incl}${q_excl}"
+  printf '%s' "${q_base}${q_ref}${q_exc}${q_incl}${q_excl}${q_len}"
 }
 
 QUERY="$(build_query "$TAXON" "$MARKER" "$DB" "$REFSEQ" "$EXC" "$EXTRA_INCL" "$EXTRA_EXCL")"
