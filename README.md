@@ -93,6 +93,7 @@ Flujo típico de preguntas:
 
 - Archivo FASTA con el nombre que indiques (p. ej., `Trichoderma_ITS_nuccore.fasta` o `Bacillus_rpoB_protein.faa`).
 - Si usas NCBI Datasets, se crea además un ZIP y una carpeta con **FASTA/JSON/tablas** de genes/CDS/proteínas para ese símbolo.
+- Update 20260624: Se genera un archivo .txt con los identificadores, así como un archivo .tsv con todos los detalles.
 
 ---
 
